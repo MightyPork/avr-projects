@@ -1,0 +1,27 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.1.12</VERSION>
+ <DEVICE>ATtiny13</DEVICE>
+ <WORKING_DIR>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:\Program Files\Atmel\AVR Tools\AvrAssembler2\Appnotes</DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:\Program Files\Atmel\AVR Tools\AvrAssembler2\Appnotes\tn13def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.hex</FILE>
+  <FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.eep</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.map</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <RESET><FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.asm</FILE><LINE>12</LINE></RESET>
+  <LOOP><FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.asm</FILE><LINE>19</LINE></LOOP>
+  <EEread><FILE>C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\t13-EEPROM_access\EEPROM_access.asm</FILE><LINE>30</LINE></EEread>
+ </LABELS>
+</ASSEMBLER_INFO>

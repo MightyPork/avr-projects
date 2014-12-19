@@ -1,0 +1,2 @@
+@ECHO OFF
+"C:\Program Files\Atmel\AVR Tools\AvrAssembler2\avrasm2.exe" -S "C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\labels.tmp" -fI -W+ie -o "C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.hex" -d "C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.obj" -e "C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.eep" -m "C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.map" "C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm"

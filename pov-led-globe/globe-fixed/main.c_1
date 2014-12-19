@@ -1,0 +1,153 @@
+#include <avr/io.h>
+#include <avr/interrupt.h>
+#include <avr/pgmspace.h>
+#include <util/delay.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "utils.h"
+
+// Change to the image you want:
+#include "image_globus32.h"
+
+
+/**
+ *                   +--u--+
+ *             RST --|     |-- Vcc
+ *   TRIGGER : PB3 --| t13 |-- PB2 : CLOCK   ->
+ *      N.C. : PB4 --|     |-- PB1 : STROBE  -> to chained 74HC4094's
+ *             GND --|     |-- PB0 : DATA    ->
+ *                   +-----+
+ *
+ * TRIGGER is connected to ground by spring switch
+ * that gets activated at start of swing to right.
+ * (It's a metal contact with weight)
+ *
+ * LEDs are connected to 74HC4094 outputs by anodes.
+ * To use cathodes, invert byte in sendByte function.
+ */
+
+
+// timing config (microseconds)
+#define LIGHT_US 1500
+#define GAP_US 200
+
+
+
+// pins config
+#define PIN_DATA	PB0
+#define PIN_STROBE	PB1
+#define PIN_CLOCK	PB2
+#define PIN_TRIGGER	PB3
+
+
+#define increment_wrap(var, max)  if ((var) >= (max)) { (var)=0; } else { (var)++; }
+#define decrement_wrap(var, max)  if ((var) > 0) { (var)--; } else { (var)=(max); }
+
+
+/** Initialize IO ports. */
+void init_io(void) SECTION(".init8");
+
+void init_io(void)
+{
+	// set output pins
+	DDRB	= _BV(PIN_DATA) | _BV(PIN_STROBE) | _BV(PIN_CLOCK);
+
+	// pullups
+	PORTB	= _BV(PIN_TRIGGER);
+
+
+	// initialize the timer
+
+	TCCR0B = _BV(CS00) | _BV(CS01);  // prescaler 0
+	OCR0A = 150;  // interrupt every 1 ms
+	sbi(TIMSK0, OCIE0A);
+
+	// initialize external interrupt
+
+	PCMSK = _BV(PCINT3);
+	sbi(GIMSK, PCIE);  // pin change interrupt enable
+
+	sei();
+}
+
+
+volatile bool want_stop = 1;
+volatile uint8_t col_start = 0;
+volatile uint8_t ms_counter = 0;
+
+
+/** timer 0 interrupt vector */
+ISR(PCINT0_vect)
+{
+	want_stop = 1; // request to stop cycle
+}
+
+
+/** timer 0 interrupt vector */
+ISR(TIM0_COMPA_vect)
+{
+	if(++ms_counter >= 150) {
+		ms_counter = 0;
+		increment_wrap(col_start, COLS - 1);
+	}
+}
+
+
+/** send one byte into registers */
+void sendByte(uint8_t b)
+{
+	for(uint8_t i=0; i<8; i++) {
+		setBit(PORTB, PIN_DATA, getBit(b, i));
+
+		// pulse
+		busPulse(PORTB, PIN_CLOCK);
+	}
+}
+
+
+/** send STROBE pulse */
+#define display() busPulse(PORTB, PIN_STROBE)
+
+/**
+ * Main function
+ */
+int main(void)
+{
+	while(1) {
+
+		while(1 == getBit(PINB, PIN_TRIGGER)); // wait for LOW on trigger
+		_delay_ms(3); // debounce delay
+		while(0 == getBit(PINB, PIN_TRIGGER)); // wait for trigger to be released
+		_delay_ms(3); // delay before start of image
+		want_stop = 0; // clear flag
+
+		uint8_t col = col_start;
+		for(uint8_t i = 0; i < COLS; i++) {
+			if (want_stop) break;
+
+			increment_wrap(col, COLS - 1);
+
+			// +++ light +++
+
+			for(int8_t row=ROWS-1; row>=0; row--) {
+				uint8_t b = pgm_read_byte(&image[col][row]);
+				sendByte(b);
+			}
+
+			display();
+			// Duration of pixel
+			_delay_us(LIGHT_US);
+
+			// +++ dark +++
+
+			for(int8_t row=ROWS-1; row>=0; row--)
+				sendByte(0);
+
+			display();
+			// Delay between pixels
+			// (remove to get continuous lines)
+			_delay_us(GAP_US);
+		}
+	}
+}

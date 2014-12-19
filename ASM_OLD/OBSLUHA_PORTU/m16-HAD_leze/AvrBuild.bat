@@ -1,0 +1,2 @@
+@ECHO OFF
+"C:\Program Files\Atmel\AVR Tools\AvrAssembler2\avrasm2.exe" -S "C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\HAD_leze\labels.tmp" -fI -W+ie -o "C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\HAD_leze\efekty_LED.hex" -d "C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\HAD_leze\efekty_LED.obj" -e "C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\HAD_leze\efekty_LED.eep" -m "C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\HAD_leze\efekty_LED.map" "C:\Documents and Settings\Ondra\Dokumenty\AVR projekty\HAD_leze\efekty_LED.asm"

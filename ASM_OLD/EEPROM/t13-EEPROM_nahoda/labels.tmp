@@ -1,0 +1,32 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.1.12</VERSION>
+ <DEVICE>ATtiny13</DEVICE>
+ <WORKING_DIR>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:\Program Files\Atmel\AVR Tools\AvrAssembler2\Appnotes</DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:\Program Files\Atmel\AVR Tools\AvrAssembler2\Appnotes\tn13def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.hex</FILE>
+  <FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.eep</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.map</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <RESET><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>19</LINE></RESET>
+  <LOOP><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>26</LINE></LOOP>
+  <cekani><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>73</LINE></cekani>
+  <EEread><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>48</LINE></EEread>
+  <EEwrite><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>58</LINE></EEwrite>
+  <L1><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>79</LINE></L1>
+  <L2><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>81</LINE></L2>
+  <L3><FILE>C:\Documents and Settings\Ondra\Plocha\AVR\EEPROM_nahoda\EEPROM_nahoda.asm</FILE><LINE>83</LINE></L3>
+ </LABELS>
+</ASSEMBLER_INFO>
