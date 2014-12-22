@@ -1,11 +1,10 @@
 
-MCU	= atmega328p
+MCU	= attiny13
 
-F_CPU = 16000000
+F_CPU = 9600000
 
-LFUSE = 0xFF
-HFUSE = 0xDE
-EFUSE = 0x05
+LFUSE = 0x72
+HFUSE = 0xFF
 
 MAIN = main.c
 
@@ -26,9 +25,9 @@ EXTRA_SOURCE_FILES =
 ##########          Set up once, then forget about it           ##########
 ##########        (Can override.  See bottom of file.)          ##########
 ##########------------------------------------------------------##########
-#19200
-PROGRAMMER_TYPE = arduino
-PROGRAMMER_ARGS = -b 57600 -P /dev/ttyUSB0
+
+PROGRAMMER_TYPE = dragon_isp
+PROGRAMMER_ARGS =
 
 
 ##########------------------------------------------------------##########
@@ -48,22 +47,19 @@ AVRSIZE = avr-size
 AVRDUDE = sudo avrdude
 
 ## Compilation options, type man avr-gcc if you're curious.
-CFLAGS = -std=gnu99 -mmcu=$(MCU) -DF_CPU=$(F_CPU)UL -I. -I$(EXTRA_SOURCE_DIR)
+CFLAGS = -std=gnu99 -mmcu=$(MCU) -DF_CPU=$(F_CPU)UL -Os -I. -I$(EXTRA_SOURCE_DIR)
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-CFLAGS += -Wall -Wno-main -Wno-strict-prototypes -Wno-comment
-CFLAGS += -g2 -Wextra -pedantic
+CFLAGS += -Wall -Wno-main
+CFLAGS += -g2 -ggdb
 CFLAGS += -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--relax
-
-CFLAGS_BUILD = $(CFLAGS) -Os
-
+CFLAGS += -std=gnu99
 # CFLAGS += -lm
 ## CFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm  ## for floating-point printf
 ## CFLAGS += -Wl,-u,vfprintf -lprintf_min      ## for smaller printf
 
 ## Lump target and extra source files together
 TARGET = $(strip $(basename $(MAIN)))
-SRC1 = $(TARGET).c
-SRC = $(SRC1)
+SRC = $(TARGET).c
 EXTRA_SOURCE = $(addprefix $(EXTRA_SOURCE_DIR), $(EXTRA_SOURCE_FILES))
 SRC += $(EXTRA_SOURCE)
 SRC += $(LOCAL_SOURCE)
@@ -76,16 +72,12 @@ OBJ = $(SRC:.c=.o)
 
 ## Generic Makefile targets.  (Only .hex file is necessary)
 all: $(TARGET).hex size
-pre: $(TARGET).pre
 
 %.hex: %.elf
 	$(OBJCOPY) -R .eeprom -O ihex $< $@
 
 %.elf: $(SRC)
-	$(CC) $(CFLAGS_BUILD) $(SRC) --output $@
-
-%.pre: $(SRC1)
-	$(CC) $(CFLAGS) -E $(SRC1) --output $@
+	$(CC) $(CFLAGS) $(SRC) --output $@
 
 %.eeprom: %.elf
 	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $< $@
@@ -138,10 +130,6 @@ terminal:
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -nt
 
 
-flash_arduino: PROGRAMMER_TYPE = arduino
-flash_arduino: PROGRAMMER_ARGS =
-flash_arduino: flash
-
 flash_dragon_isp: PROGRAMMER_TYPE = dragon_isp
 flash_dragon_isp: PROGRAMMER_ARGS =
 flash_dragon_isp: flash
@@ -152,7 +140,7 @@ flash_dragon_isp: flash
 ##########------------------------------------------------------##########
 
 ## Generic
-FUSE_STRING = -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m -U efuse:w:$(EFUSE):m
+FUSE_STRING = -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m
 
 fuses:
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) \
@@ -161,5 +149,5 @@ show_fuses:
 	$(AVRDUDE) -c $(PROGRAMMER_TYPE) -p $(MCU) $(PROGRAMMER_ARGS) -nv
 
 ## Called with no extra definitions, sets to defaults
-set_default_fuses:  FUSE_STRING = -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m -U efuse:w:$(EFUSE):m
+set_default_fuses:  FUSE_STRING = -U lfuse:w:$(LFUSE):m -U hfuse:w:$(HFUSE):m
 set_default_fuses:  fuses

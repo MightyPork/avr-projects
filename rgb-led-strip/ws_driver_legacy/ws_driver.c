@@ -19,6 +19,7 @@
 #define delay_ns_c(ns, c)  delay_c(ns2cycles(ns) + (c))
 
 
+/** Latch and display the RGB values */
 void ws_show()
 {
 	ws_low();
@@ -26,6 +27,7 @@ void ws_show()
 }
 
 
+/** Send one byte to the RGB strip */
 void ws_send_byte(uint8_t bb)
 {
 	for (int8_t i = 7; i >= 0; --i) {
@@ -46,9 +48,13 @@ void ws_send_byte(uint8_t bb)
 }
 
 
+/** Send RGB color to the strip */
 void ws_send_rgb(uint8_t r, uint8_t g, uint8_t b)
 {
 	int8_t i;
+
+	// manualy inlined, because `inline` doesn't work with delays.
+
 	// GREEN
 	for (i = 7; i >= 0; --i) {
 		if (g & (1 << i)) {

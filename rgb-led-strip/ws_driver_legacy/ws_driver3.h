@@ -2,11 +2,7 @@
 
 // -- AVR GCC utility for driving WS2812B and similar RGB LED stripes --
 
-// You must define the foillowing in config file or here:
-// *  WS_PORT
-// *  WS_BIT
-
-#include "config.h"
+// You must define the following in config file or here:
 
 // The pin must be set to OUTPUT before using the output functions
 
@@ -34,7 +30,7 @@
 #endif
 
 
-// More accurate timing
+// More precise timing
 // #define WS_T_1H  800
 // #define WS_T_1L  450
 // #define WS_T_0H  200
@@ -42,11 +38,17 @@
 // #define WS_T_LATCH 50000
 
 
+
+void ws_bind(uint8_t port_addr, uint8_t bit);
+
+
 /** Latch and display the RGB values */
 void ws_show(void);
 
+
 /** Send one byte to the RGB strip */
 void ws_send_byte(uint8_t b);
+
 
 /** Send RGB color to the strip */
 void ws_send_rgb(uint8_t r, uint8_t g, uint8_t b);

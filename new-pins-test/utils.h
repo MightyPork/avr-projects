@@ -1,9 +1,8 @@
 #pragma once
 
-#include <avr/io.h>
-
 // general macros
 #define SECTION(pos) __attribute__((naked, used, section(pos)))
+
 
 // pin manipulation
 #define sbi(port, bit) (port) |= _BV(bit)
