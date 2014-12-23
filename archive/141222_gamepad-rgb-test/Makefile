@@ -12,7 +12,7 @@ MAIN = main.c
 ## If you've split your program into multiple files,
 ## include the additional .c source (in same directory) here
 ## (and include the .h files in your foo.c)
-LOCAL_SOURCE = lib/ws_driver.c
+LOCAL_SOURCE =
 
 ## Here you can link to one more directory (and multiple .c files)
 # EXTRA_SOURCE_DIR = ../AVR-Programming-Library/
@@ -48,19 +48,22 @@ AVRSIZE = avr-size
 AVRDUDE = sudo avrdude
 
 ## Compilation options, type man avr-gcc if you're curious.
-CFLAGS = -std=gnu99 -mmcu=$(MCU) -DF_CPU=$(F_CPU)UL -Os -I. -I$(EXTRA_SOURCE_DIR)
+CFLAGS = -std=gnu99 -mmcu=$(MCU) -DF_CPU=$(F_CPU)UL -I. -I$(EXTRA_SOURCE_DIR)
 CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-CFLAGS += -Wall -Wstrict-prototypes -Wno-main -Wno-strict-prototypes -Wno-comment
-CFLAGS += -g2 -ggdb
+CFLAGS += -Wall -Wno-main -Wno-strict-prototypes -Wno-comment
+CFLAGS += -g2 -Wextra -pedantic -Wfatal-errors
 CFLAGS += -ffunction-sections -fdata-sections -Wl,--gc-sections -Wl,--relax
-CFLAGS += -std=gnu99
+
+CFLAGS_BUILD = $(CFLAGS) -Os
+
 # CFLAGS += -lm
 ## CFLAGS += -Wl,-u,vfprintf -lprintf_flt -lm  ## for floating-point printf
 ## CFLAGS += -Wl,-u,vfprintf -lprintf_min      ## for smaller printf
 
 ## Lump target and extra source files together
 TARGET = $(strip $(basename $(MAIN)))
-SRC = $(TARGET).c
+SRC1 = $(TARGET).c
+SRC = $(SRC1)
 EXTRA_SOURCE = $(addprefix $(EXTRA_SOURCE_DIR), $(EXTRA_SOURCE_FILES))
 SRC += $(EXTRA_SOURCE)
 SRC += $(LOCAL_SOURCE)
@@ -73,12 +76,16 @@ OBJ = $(SRC:.c=.o)
 
 ## Generic Makefile targets.  (Only .hex file is necessary)
 all: $(TARGET).hex size
+pre: $(TARGET).pre
 
 %.hex: %.elf
 	$(OBJCOPY) -R .eeprom -O ihex $< $@
 
 %.elf: $(SRC)
-	$(CC) $(CFLAGS) $(SRC) --output $@
+	$(CC) $(CFLAGS_BUILD) $(SRC) --output $@
+
+%.pre: $(SRC1)
+	$(CC) $(CFLAGS) -E $(SRC1) --output $@
 
 %.eeprom: %.elf
 	$(OBJCOPY) -j .eeprom --change-section-lma .eeprom=0 -O ihex $< $@
@@ -96,6 +103,7 @@ debug:
 disassemble: $(TARGET).lst
 
 dis: disassemble
+lst: disassemble
 
 eeprom: $(TARGET).eeprom
 
