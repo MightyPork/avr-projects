@@ -16,7 +16,7 @@ typedef uint16_t rgb12_t;
 typedef uint8_t rgb6_t;
 
 
-#define xrgb(rr, gg, bb) { .r = ((uint8_t)(rr)), .g = ((uint8_t)(gg)), .b = ((uint8_t)(bb)) }
+#define xrgb(rr, gg, bb) ((xrgb_t) { .r = ((uint8_t)(rr)), .g = ((uint8_t)(gg)), .b = ((uint8_t)(bb)) })
 #define xrgb_r(c) ((uint8_t)(c.r))
 #define xrgb_g(c) ((uint8_t)(c.g))
 #define xrgb_b(c) ((uint8_t)(c.b))
@@ -55,3 +55,5 @@ typedef uint8_t rgb6_t;
 #define rgb6_b(c) ((((rgb6_t) (c)) & 0x3) << 6)
 #define rgb6_xrgb(c)  xrgb(rgb6_r(c), rgb6_g(c), rgb6_b(c))
 #define rgb6_rgb24(c) rgb24(rgb6_r(c), rgb6_g(c), rgb6_b(c))
+
+#define add_xrgb(x, y) ((xrgb_t) { (((y).r > (255 - (x).r)) ? 255 : ((x).r + (y).r)), (((y).g > (255 - (x).g)) ? 255 : ((x).g + (y).g)), (((y).b > 255 - (x).b) ? 255 : ((x).b + (y).b)) })
