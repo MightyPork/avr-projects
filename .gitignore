@@ -3,6 +3,7 @@
 *.obj
 *.elf
 *.lst
+*.pre
 *~
 *.bak
 *.lib

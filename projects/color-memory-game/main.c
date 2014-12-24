@@ -18,8 +18,10 @@
 #include "lib/debounce.h"
 
 
-#define BOARD_WIDTH 6
-#define BOARD_HEIGHT 5
+// #define BOARD_WIDTH 6
+// #define BOARD_HEIGHT 5
+#define BOARD_WIDTH 4
+#define BOARD_HEIGHT 4
 
 // number of cards
 #define CARD_COUNT (BOARD_WIDTH * BOARD_HEIGHT)
@@ -30,20 +32,20 @@
 // color palette
 const xrgb_t COLORS[] = {
 	rgb24_xrgbc(0x00FF99), // emerald
-	rgb24_xrgbc(0x00CCCC), // cyan
 	rgb24_xrgbc(0x0000CC), // full blue
-	rgb24_xrgbc(0xFF6D55), // salmon?
-	rgb24_xrgbc(0x4400FF), // blue-purple
 	rgb24_xrgbc(0xFF00FF), // magenta
-	rgb24_xrgbc(0xD70053), // wine
 	rgb24_xrgbc(0xFF0000), // red
-	rgb24_xrgbc(0xCD2B64), // brick
-	rgb24_xrgbc(0xED1B24), // firetruck red
-	rgb24_xrgbc(0xFF6D00), // tangerine yellow/orange
 	rgb24_xrgbc(0xFF2B00), // orange
 	rgb24_xrgbc(0xFFFF00), // yellow
-	rgb24_xrgbc(0x5FBA00), // yellow-green
 	rgb24_xrgbc(0x0BEE00), // green
+	rgb24_xrgbc(0xFF6D00), // tangerine yellow/orange
+	rgb24_xrgbc(0x00CCCC), // cyan
+	rgb24_xrgbc(0x4400FF), // blue-purple
+	rgb24_xrgbc(0x5FBA00), // yellow-green
+	rgb24_xrgbc(0xD70053), // wine
+	rgb24_xrgbc(0xCD2B64), // brick
+	rgb24_xrgbc(0xED1B24), // firetruck red
+	rgb24_xrgbc(0xFF6D55), // salmon?
 };
 
 
@@ -53,8 +55,12 @@ const xrgb_t COLORS[] = {
 #endif
 
 
+// Pin assignments (see pins.h)
+
+// RGB LED strip data line
 #define WS1   D10
 
+// Buttons (to ground)
 #define BTN_LEFT     D2
 #define BTN_RIGHT    D3
 #define BTN_UP       D4
@@ -71,8 +77,10 @@ const xrgb_t COLORS[] = {
 #define D_SELECT    4
 #define D_RESTART   5
 
-// Pin A0 not connected to anything, used to get
-// entropy for random number generator
+// [ IMPORTANT ]
+// Pin A0 must not be connected, it is used to get
+// entropy for the random number generator
+
 
 // Prototypes
 void render();
@@ -80,10 +88,12 @@ void update();
 void deal_cards();
 
 
+/** Program initialization */
 void SECTION(".init8") init()
 {
-	adc_init();  // Initialize ADC
-	srand(adc_read_word(0));  // Randomize RNG
+	// Randomize RNG
+	adc_init();
+	srand(adc_read_word(0));
 
 	// led strip data
 	as_output(WS1);
@@ -110,8 +120,10 @@ void SECTION(".init8") init()
 	OCR0A = 156;  // interrupt every 10 ms
 	sbi(TIMSK0, OCIE0A);
 
+	// prepare game board
 	deal_cards();
 
+	// enable timer interrupts (update & render)
 	sei();
 }
 
@@ -136,6 +148,7 @@ typedef struct {
 tile_t board[CARD_COUNT];
 
 
+/** Randomly place pairs of cards on the board */
 void deal_cards()
 {
 	// clear the board
@@ -191,6 +204,8 @@ uint8_t tile2;
 
 uint8_t btn_hold_cnt[DEBO_CHANNELS];
 
+
+/** Handle a button press event */
 void button_click(uint8_t n)
 {
 	switch (n) {
@@ -279,7 +294,7 @@ void safe_press_arrow_key(uint8_t n)
 /** Update game (every 10 ms) */
 void update()
 {
-	// handle buttons (repeating)
+	// handle buttons (with repeating when held down)
 	for (uint8_t i = 0; i < DEBO_CHANNELS; i++) {
 		if (debo_get_pin(i)) {
 			if (btn_hold_cnt[i] == 0) {
@@ -298,7 +313,7 @@ void update()
 		}
 	}
 
-	// handle game logic
+	// game logic - hide or remove cards when time is up
 	if (hide_timeout > 0) {
 		if (--hide_timeout == 0) {
 			if (hide_timeout_match) {
@@ -324,7 +339,7 @@ void update()
 		}
 	}
 
-
+	// Animation for pulsing the active color
 	inc_wrap(animframe, 0, F_ANIM_LEN * 2);
 }
 
@@ -340,7 +355,9 @@ xrgb_t screen[CARD_COUNT];
 /** Update screen[] and send to display */
 void render()
 {
+	// Prepare screen (compute colors)
 	for (uint8_t i = 0; i < CARD_COUNT; i++) {
+		// get tile color to show
 		switch (board[i].state) {
 			case SECRET:
 				screen[i] = WHITE;
@@ -356,8 +373,8 @@ void render()
 				break;
 		}
 
+		// pulse active tile
 		if (i == cursor) {
-			// flashy animation state
 			uint16_t mult;
 
 			if (animframe < F_ANIM_LEN) {
@@ -374,8 +391,7 @@ void render()
 		}
 	}
 
-	// debo_get_pin(BTN_LEFT_D) ? PINK : BLACK;
-
+	// Send to LEDs
 	ws_send_xrgb_array(WS1, screen, CARD_COUNT);
 	ws_show();
 }
