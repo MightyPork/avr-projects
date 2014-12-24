@@ -16,6 +16,9 @@
 
 #define read_bit(reg, bit) ((((uint8_t)(reg)) >> (uint8_t)(bit)) & 0x1)
 #define get_bit(reg, bit) read_bit(reg, bit)
+#define bit_is_high(reg, bit) read_bit(reg, bit)
+#define bit_is_low(reg, bit) !read_bit(reg, bit)
+// Can't use bit_is_set, as it's redefined in sfr_def.h
 
 #define write_bit(reg, bit, value) do { (reg) = ((reg) & ~(1 << (uint8_t)(bit))) | (((uint8_t)(value) & 0x1) << (uint8_t)(bit)); } while(0)
 #define set_bit(reg, bit, value) write_bit(reg, bit, value)
@@ -31,6 +34,9 @@
 #define write_bit_p(reg_p, bit, value) do { *(reg_p) = (*(reg_p) & ~(1 << ((uint8_t)(bit) & 0x1))) | (((uint8_t)(value) & 0x1) << (uint8_t)(bit)); } while(0)
 #define set_bit_p(reg, bit, value) write_bit_p(reg_p, bit, value)
 #define toggle_bit_p(reg_p, bit) do { *(reg_p) ^= (1 << (uint8_t)(bit)); } while(0)
+
+#define write_low_nibble(reg, value)  do { (reg) = ((reg) & 0xF0) | ((uint8_t)(value) & 0xF); } while(0)
+#define write_high_nibble(reg, value) do { (reg) = ((reg) & 0x0F) | (((uint8_t)(value) & 0xF) << 4); } while(0)
 
 
 // Check if value is in range A..B or B..A
