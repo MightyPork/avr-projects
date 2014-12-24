@@ -35,8 +35,8 @@ typedef uint8_t rgb6_t;
 #define xrgb_rgb6(c)  (((((rgb6_t)c.r) & 0xC0) >> 2)  | ((((rgb6_t)c.g) & 0xC0) >> 4) | ((((rgb6_t)c.b) & 0xC0) >> 6))
 
 
-#define rgb24(r,g,b) (((((rgb24_t)r) & 0xFF) << 16) | ((((rgb24_t)g) & 0xFF) << 8) | (((rgb24_t)b) & 0xFF))
-#define rgb24c(r,g,b) ((rgb24_t) rgb24(r,g,b))
+#define rgb24c(r,g,b) (((((rgb24_t)r) & 0xFF) << 16) | ((((rgb24_t)g) & 0xFF) << 8) | (((rgb24_t)b) & 0xFF))
+#define rgb24(r,g,b) ((rgb24_t) rgb24(r,g,b))
 
 #define rgb24_r(c) ((((rgb24_t) (c)) >> 16) & 0xFF)
 #define rgb24_g(c) ((((rgb24_t) (c)) >> 8) & 0xFF)

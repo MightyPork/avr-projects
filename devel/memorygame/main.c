@@ -20,30 +20,35 @@
 
 #define BOARD_WIDTH 6
 #define BOARD_HEIGHT 5
-#define BOARD_LEN (BOARD_WIDTH * BOARD_HEIGHT)
-#define TILE_COUNT (BOARD_LEN / 2)
 
+// number of cards
+#define CARD_COUNT (BOARD_WIDTH * BOARD_HEIGHT)
+
+// number of pairs
+#define PAIR_COUNT (CARD_COUNT / 2)
+
+// color palette
 const xrgb_t COLORS[] = {
-	rgb24_xrgbc(0xB14835), // brick red
-	rgb24_xrgbc(0x4C1661), // indigo
-	rgb24_xrgbc(0xA3268E), // royal purple
-	rgb24_xrgbc(0x009ADA), // cobalt blue
-	rgb24_xrgbc(0x007D8F), // teal
-	rgb24_xrgbc(0x002E5A), // navy blue
-	rgb24_xrgbc(0x56BCC1), // turquoise
-	rgb24_xrgbc(0x01654D), // emerald dark
-	rgb24_xrgbc(0xF5864F), // papaya orange
+	rgb24_xrgbc(0x00FF99), // emerald
+	rgb24_xrgbc(0x00CCCC), // cyan
+	rgb24_xrgbc(0x0000CC), // full blue
+	rgb24_xrgbc(0xFF6D55), // salmon?
+	rgb24_xrgbc(0x4400FF), // blue-purple
+	rgb24_xrgbc(0xFF00FF), // magenta
+	rgb24_xrgbc(0xD70053), // wine
+	rgb24_xrgbc(0xFF0000), // red
+	rgb24_xrgbc(0xCD2B64), // brick
 	rgb24_xrgbc(0xED1B24), // firetruck red
-	rgb24_xrgbc(0xFDAF17), // tangerine orange
-	rgb24_xrgbc(0xF58F83), // coral
-	rgb24_xrgbc(0xED008C), // magenta
-	rgb24_xrgbc(0xFEF200), // sunshine yellow
-	rgb24_xrgbc(0x6D9346), // treetop green
+	rgb24_xrgbc(0xFF6D00), // tangerine yellow/orange
+	rgb24_xrgbc(0xFF2B00), // orange
+	rgb24_xrgbc(0xFFFF00), // yellow
+	rgb24_xrgbc(0x5FBA00), // yellow-green
+	rgb24_xrgbc(0x0BEE00), // green
 };
 
 
 // assert valid board size
-#if BOARD_LEN % 2 == 1
+#if CARD_COUNT % 2 == 1
 # error "Board size is not even!"
 #endif
 
@@ -72,6 +77,7 @@ const xrgb_t COLORS[] = {
 // Prototypes
 void render();
 void update();
+void deal_cards();
 
 
 void SECTION(".init8") init()
@@ -104,24 +110,11 @@ void SECTION(".init8") init()
 	OCR0A = 156;  // interrupt every 10 ms
 	sbi(TIMSK0, OCIE0A);
 
+	deal_cards();
 
 	sei();
 }
 
-
-/** timer 0 interrupt vector */
-ISR(TIMER0_COMPA_vect)
-{
-	//debo_tick();  // poll debouncer
-	update();  // update game state
-	render();
-}
-
-
-void main()
-{
-	while(1);  // Timer does everything
-}
 
 
 /** Tile state enum */
@@ -140,46 +133,255 @@ typedef struct {
 
 
 // board tiles
-tile_t board[BOARD_LEN];
+tile_t board[CARD_COUNT];
 
-// player cursor position
-uint8_t cursor = 0;
 
-uint8_t noise = 0;
-uint8_t xxx = 0;
-
-/** Update game */
-void update()
+void deal_cards()
 {
-	if(xxx++ >= 10) {
-		noise = rand();
-		xxx = 0;
+	// clear the board
+	for (uint8_t i = 0; i < CARD_COUNT; ++i) {
+		board[i] = (tile_t) { .color = 0, .state = GONE };
+	}
+
+	// for all pair_COUNT
+	for (uint8_t i = 0; i < PAIR_COUNT; ++i) {
+		// for both cards in pair
+		for (uint8_t j = 0; j < 2; j++) {
+			// loop until empty slot is found
+			while(1) {
+				uint8_t pos = rand() % CARD_COUNT;
+
+				if (board[pos].state == GONE) {
+					board[pos] = (tile_t) { .color = i, .state = SECRET };
+					break;
+				}
+			}
+		}
 	}
 }
 
 
+/** timer 0 interrupt vector */
+ISR(TIMER0_COMPA_vect)
+{
+	debo_tick();  // poll debouncer
+	update();  // update game state
+	render();
+}
+
+
+// player cursor position
+uint8_t cursor = 0;
+uint8_t animframe = 0;
+
+bool hide_timeout_match;
+uint8_t hide_timeout = 0;
+
+// Game state
+uint8_t tiles_revealed = 0;
+uint8_t tile1;
+uint8_t tile2;
+
+// length of pulse animation (in 10ms)
+#define F_ANIM_LEN 20
+#define HIDE_TIME 100
+
+// length of button holding before it's repeated (in 10ms)
+#define BTNHOLD_REPEAT 20
+
+uint8_t btn_hold_cnt[DEBO_CHANNELS];
+
+void button_click(uint8_t n)
+{
+	switch (n) {
+		case D_UP:
+			if (cursor < BOARD_WIDTH)  // first row
+				cursor += (CARD_COUNT - BOARD_WIDTH);
+			else
+				cursor -= BOARD_WIDTH;
+			break;
+
+		case D_DOWN:
+			if (cursor >= (CARD_COUNT - BOARD_WIDTH))  // last row
+				cursor -= (CARD_COUNT - BOARD_WIDTH);
+			else
+				cursor += BOARD_WIDTH;
+			break;
+
+		case D_LEFT:
+			if (cursor > 0)  // last row
+				cursor--;
+			else
+				cursor = (CARD_COUNT - 1);
+			break;
+
+		case D_RIGHT:
+			if (cursor < (CARD_COUNT - 1))  // last row
+				cursor++;
+			else
+				cursor = 0;
+			break;
+
+		case D_SELECT:
+			if (tiles_revealed == 2) break;  // two already shown
+			if (board[cursor].state != SECRET) break;  // selected tile not secret
+
+			// reveal a tile
+			if (tiles_revealed < 2) {
+				board[cursor].state = REVEALED;
+				tiles_revealed++;
+
+				if(tiles_revealed == 1) {
+					tile1 = cursor;
+				} else {
+					tile2 = cursor;
+				}
+			}
+
+			// Check equality if it's the second
+			if (tiles_revealed == 2) {
+				hide_timeout_match = (board[tile1].color == board[tile2].color);
+				hide_timeout = HIDE_TIME;
+			}
+
+			break;
+
+		case D_RESTART:
+			deal_cards();
+			break;
+	}
+}
+
+
+/** Press arrow key, skip empty tiles */
+void safe_press_arrow_key(uint8_t n)
+{
+	// attempt to arrive at some secret tile
+	for (uint8_t j = 0; j < BOARD_HEIGHT; j++) {
+
+		for (uint8_t k = 0; k < BOARD_WIDTH; k++) {
+			button_click(n);
+			if (board[cursor].state != GONE) break;
+		}
+
+		if (board[cursor].state != GONE) break;
+
+		// traverse right since current column is empty
+		//
+		button_click(D_RIGHT);
+	}
+}
+
+
+#define is_arrow_key(id) ((id) == D_LEFT || (id) == D_RIGHT || (id) == D_UP || (id) == D_DOWN)
+
+
+/** Update game (every 10 ms) */
+void update()
+{
+	// handle buttons (repeating)
+	for (uint8_t i = 0; i < DEBO_CHANNELS; i++) {
+		if (debo_get_pin(i)) {
+			if (btn_hold_cnt[i] == 0) {
+				if (is_arrow_key(i)) {
+					safe_press_arrow_key(i);
+				} else {
+					button_click(i);
+				}
+			}
+
+			// non-arrows wrap to 1 -> do not generate repeated clicks
+			inc_wrap(btn_hold_cnt[i], is_arrow_key(i) ? 1 : 0, BTNHOLD_REPEAT);
+
+		} else {
+			btn_hold_cnt[i] = 0;
+		}
+	}
+
+	// handle game logic
+	if (hide_timeout > 0) {
+		if (--hide_timeout == 0) {
+			if (hide_timeout_match) {
+				// Tiles removed from board
+				board[tile1].state = GONE;
+				board[tile2].state = GONE;
+
+				if (board[cursor].state == GONE) {
+					// move to some other tile
+					// try not to change row if possible
+					if ((cursor % BOARD_WIDTH) == (BOARD_WIDTH-1))
+						safe_press_arrow_key(D_LEFT);
+					else
+						safe_press_arrow_key(D_RIGHT);
+				}
+			} else {
+				// Tiles made secret again
+				board[tile1].state = SECRET;
+				board[tile2].state = SECRET;
+			}
+
+			tiles_revealed = 0; // no revealed
+		}
+	}
+
+
+	inc_wrap(animframe, 0, F_ANIM_LEN * 2);
+}
+
+// LED off
+#define BLACK rgb24_xrgb(0x000000)
+// LED on - secret tile
+#define WHITE rgb24_xrgb(0x555555)
+
 // colors to be displayed
-rgb24_t screen[BOARD_LEN];
+xrgb_t screen[CARD_COUNT];
+
 
 /** Update screen[] and send to display */
 void render()
 {
-	#define BLUE 0x005397
-	#define RED 0xFF0000
-	#define YELLOW 0xFFFF00
-	#define BLACK 0x000000
+	for (uint8_t i = 0; i < CARD_COUNT; i++) {
+		switch (board[i].state) {
+			case SECRET:
+				screen[i] = WHITE;
+				break;
 
-	for (uint8_t i = 0; i < BOARD_LEN; i++) {
-		if (i < 8) {
-			screen[i] = get_bit(noise, i) ? RED : BLUE;
-		} else {
-			screen[i] = YELLOW;
+			case REVEALED:
+				screen[i] = COLORS[board[i].color];
+				break;
+
+			default:
+			case GONE:
+				screen[i] = BLACK;
+				break;
+		}
+
+		if (i == cursor) {
+			// flashy animation state
+			uint16_t mult;
+
+			if (animframe < F_ANIM_LEN) {
+				mult = animframe;
+			} else {
+				mult = (F_ANIM_LEN * 2) - animframe;
+			}
+
+			screen[i] = (xrgb_t) {
+				.r = (uint8_t) ((((uint16_t) screen[i].r) * mult) / F_ANIM_LEN),
+				.g = (uint8_t) ((((uint16_t) screen[i].g) * mult) / F_ANIM_LEN),
+				.b = (uint8_t) ((((uint16_t) screen[i].b) * mult) / F_ANIM_LEN),
+			};
 		}
 	}
 
 	// debo_get_pin(BTN_LEFT_D) ? PINK : BLACK;
 
-	ws_send_rgb24_array(WS1, screen, BOARD_LEN);
+	ws_send_xrgb_array(WS1, screen, CARD_COUNT);
 	ws_show();
 }
 
+
+void main()
+{
+	while(1);  // Timer does everything
+}
