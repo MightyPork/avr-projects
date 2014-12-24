@@ -20,14 +20,17 @@
 
 // #define BOARD_WIDTH 6
 // #define BOARD_HEIGHT 5
-#define BOARD_WIDTH 4
-#define BOARD_HEIGHT 4
+#define BOARD_WIDTH 6
+#define BOARD_HEIGHT 5
 
 // number of cards
 #define CARD_COUNT (BOARD_WIDTH * BOARD_HEIGHT)
 
 // number of pairs
 #define PAIR_COUNT (CARD_COUNT / 2)
+
+// when the "small" pin is DOWN, only this many cards are dealt - on the same board size
+#define CARD_COUNT_SMALL 18
 
 // color palette
 const xrgb_t COLORS[] = {
@@ -68,6 +71,9 @@ const xrgb_t COLORS[] = {
 #define BTN_SELECT   D6
 #define BTN_RESTART  D7
 
+// connect this pin to ground to get smaller board size (for kids ^^)
+#define FLAG_SMALL   D12
+
 // Debouncer channels for buttons
 // (Must be added in this order to debouncer)
 #define D_LEFT      0
@@ -105,6 +111,8 @@ void SECTION(".init8") init()
 	as_input_pu(BTN_DOWN);
 	as_input_pu(BTN_SELECT);
 	as_input_pu(BTN_RESTART);
+
+	as_input_pu(FLAG_SMALL); // when LOW, use smaller board.
 
 	// add buttons to debouncer
 	debo_add_rev(BTN_LEFT);
@@ -156,13 +164,15 @@ void deal_cards()
 		board[i] = (tile_t) { .color = 0, .state = GONE };
 	}
 
+	const uint8_t dealt_cards = get_pin(FLAG_SMALL) ? CARD_COUNT : CARD_COUNT_SMALL;
+
 	// for all pair_COUNT
-	for (uint8_t i = 0; i < PAIR_COUNT; ++i) {
+	for (uint8_t i = 0; i < (dealt_cards / 2); ++i) {
 		// for both cards in pair
 		for (uint8_t j = 0; j < 2; j++) {
 			// loop until empty slot is found
 			while(1) {
-				uint8_t pos = rand() % CARD_COUNT;
+				const uint8_t pos = rand() % dealt_cards;
 
 				if (board[pos].state == GONE) {
 					board[pos] = (tile_t) { .color = i, .state = SECRET };
@@ -200,7 +210,7 @@ uint8_t tile2;
 #define HIDE_TIME 100
 
 // length of button holding before it's repeated (in 10ms)
-#define BTNHOLD_REPEAT 20
+#define BTNHOLD_REPEAT 15
 
 uint8_t btn_hold_cnt[DEBO_CHANNELS];
 
@@ -306,7 +316,7 @@ void update()
 			}
 
 			// non-arrows wrap to 1 -> do not generate repeated clicks
-			inc_wrap(btn_hold_cnt[i], is_arrow_key(i) ? 1 : 0, BTNHOLD_REPEAT);
+			inc_wrap(btn_hold_cnt[i], is_arrow_key(i) ? 0 : 1, BTNHOLD_REPEAT);
 
 		} else {
 			btn_hold_cnt[i] = 0;
@@ -324,7 +334,7 @@ void update()
 				if (board[cursor].state == GONE) {
 					// move to some other tile
 					// try not to change row if possible
-					if ((cursor % BOARD_WIDTH) == (BOARD_WIDTH-1))
+					if ((cursor % BOARD_WIDTH) == (BOARD_WIDTH - 1))
 						safe_press_arrow_key(D_LEFT);
 					else
 						safe_press_arrow_key(D_RIGHT);
