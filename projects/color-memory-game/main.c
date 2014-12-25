@@ -30,7 +30,7 @@
 #define PAIR_COUNT (CARD_COUNT / 2)
 
 // when the "small" pin is DOWN, only this many cards are dealt - on the same board size
-#define CARD_COUNT_SMALL 18
+#define CARD_COUNT_SMALL 12
 
 // color palette
 const xrgb_t COLORS[] = {
@@ -210,7 +210,7 @@ uint8_t tile2;
 #define HIDE_TIME 100
 
 // length of button holding before it's repeated (in 10ms)
-#define BTNHOLD_REPEAT 15
+#define BTNHOLD_REPEAT 20
 
 uint8_t btn_hold_cnt[DEBO_CHANNELS];
 
