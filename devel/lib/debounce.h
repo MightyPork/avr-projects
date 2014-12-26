@@ -49,9 +49,9 @@
 
 /* Internal deboucer entry */
 typedef struct {
-	PORT_P reg;
-	uint8_t bit;
-	uint8_t count;
+	PORT_P reg;    // pointer to IO register
+	uint8_t bit;   // bits 6 and 7 of this hold "state" & "invert" flag
+	uint8_t count; // number of ticks this was in the new state
 } debo_slot_t;
 
 /** Debounce data array */
@@ -101,4 +101,3 @@ void debo_tick()
 
 /** Get a value of debounced pin */
 #define debo_get_pin(i) (get_bit(debo_slots[i].bit, 6) ^ get_bit(debo_slots[i].bit, 7))
-//(get_bit(debo_slots[i].bit, 6) ^ get_bit(debo_slots[i].bit, 7))

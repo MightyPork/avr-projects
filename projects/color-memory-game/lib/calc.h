@@ -4,11 +4,13 @@
   General purpose calculation and bit manipulation utilities.
 */
 
-// if max, go to zero. Else increment.
-#define inc_wrap(var, min, max)  do { if ((var) >= (max)) { (var)=min; } else { (var)++; } } while(0)
+// if max, go to zero. Else increment. wrape = wrap exclusive
+#define inc_wrap(var, min, max)  do { if ((var) >= (max - 1)) { (var) = (min); } else { (var)++; } } while(0)
+#define inc_wrapi(var, min, max) inc_wrap((var), (min), (max) + 1)
 
-// If zero, go to max. Else decrement,
-#define dec_wrap(var, min, max)  do { if ((var) > min) { (var)--; } else { (var)=(max); } } while(0)
+// If zero, go to max. Else decrement. wrape = wrap exclusive
+#define dec_wrap(var, min, max)  do { if ((var) > (min)) { (var)--; } else { (var) = (max) - 1; } } while(0)
+#define dec_wrapi(var, min, max) dec_wrap((var), (min), (max) + 1)
 
 // === general bit manipulation with register ===
 #define sbi(reg, bit) do { (reg) |= (1 << (uint8_t)(bit)); } while(0)
@@ -40,7 +42,9 @@
 
 
 // Check if value is in range A..B or B..A
-#define in_range(x, low, high) (((low) < (high)) && ((x) > (low) && (x) < (high))) || (((low) > (high)) && ((x) < (low) || (x) > (high)))
+#define in_range(x, low, high) ((((low) < (high)) && ((x) >= (low) && (x) < (high))) || (((low) > (high)) && ((x) < (low) && (x) >= (high))))
+#define in_rangei(x, low, high) ((((low) <= (high)) && ((x) >= (low) && (x) <= (high))) || (((low) > (high)) && ((x) <= (low) && (x) >= (high))))
 
 // Check if value is in range A..B. If B < A, matches all outside B..A
-#define in_range_wrap(x, low, high) (((low) < (high)) && ((x) > (low) && (x) < (high))) || (((low) > (high)) && ((x) > (low) || (x) < (high)))
+#define in_range_wrap(x, low, high) ((((low) < (high)) && ((x) >= (low) && (x) < (high))) || (((low) > (high)) && ((x) >= (low) || (x) < (high))))
+#define in_range_wrapi(x, low, high) ((((low) <= (high)) && ((x) >= (low) && (x) <= (high))) || (((low) > (high)) && ((x) >= (low) || (x) <= (high))))

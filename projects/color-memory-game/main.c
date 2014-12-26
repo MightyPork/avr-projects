@@ -17,48 +17,17 @@
 
 #include "lib/debounce.h"
 
-
-// #define BOARD_WIDTH 6
-// #define BOARD_HEIGHT 5
-#define BOARD_WIDTH 6
-#define BOARD_HEIGHT 5
+#define WIDTH 6
+#define HEIGHT 5
 
 // number of cards
-#define CARD_COUNT (BOARD_WIDTH * BOARD_HEIGHT)
-
-// number of pairs
-#define PAIR_COUNT (CARD_COUNT / 2)
+#define CARD_COUNT (WIDTH * HEIGHT)
 
 // when the "small" pin is DOWN, only this many cards are dealt - on the same board size
-#define CARD_COUNT_SMALL 12
-
-// color palette
-const xrgb_t COLORS[] = {
-	rgb24_xrgbc(0x00FF99), // emerald
-	rgb24_xrgbc(0x0000CC), // full blue
-	rgb24_xrgbc(0xFF00FF), // magenta
-	rgb24_xrgbc(0xFF0000), // red
-	rgb24_xrgbc(0xFF2B00), // orange
-	rgb24_xrgbc(0xFFFF00), // yellow
-	rgb24_xrgbc(0x0BEE00), // green
-	rgb24_xrgbc(0xFF6D00), // tangerine yellow/orange
-	rgb24_xrgbc(0x00CCCC), // cyan
-	rgb24_xrgbc(0x4400FF), // blue-purple
-	rgb24_xrgbc(0x5FBA00), // yellow-green
-	rgb24_xrgbc(0xD70053), // wine
-	rgb24_xrgbc(0xCD2B64), // brick
-	rgb24_xrgbc(0xED1B24), // firetruck red
-	rgb24_xrgbc(0xFF6D55), // salmon?
-};
+#define CARD_COUNT_SMALL WIDTH * 2
 
 
-// assert valid board size
-#if CARD_COUNT % 2 == 1
-# error "Board size is not even!"
-#endif
-
-
-// Pin assignments (see pins.h)
+// --- Pin assignments (see pins.h) ---
 
 // RGB LED strip data line
 #define WS1   D10
@@ -71,7 +40,7 @@ const xrgb_t COLORS[] = {
 #define BTN_SELECT   D6
 #define BTN_RESTART  D7
 
-// connect this pin to ground to get smaller board size (for kids ^^)
+// Connect to GROUND to get small board size (for kids ^_^)
 #define FLAG_SMALL   D12
 
 // Debouncer channels for buttons
@@ -88,10 +57,44 @@ const xrgb_t COLORS[] = {
 // entropy for the random number generator
 
 
+
+// number of pairs
+#define PAIR_COUNT (CARD_COUNT / 2)
+
+// assert valid board size
+#if CARD_COUNT % 2 == 1
+# error "CARD_COUNT is not even!"
+#endif
+
+#if CARD_COUNT_SMALL % 2 == 1
+# error "CARD_COUNT_SMALL is not even!"
+#endif
+
+// color palette
+const xrgb_t COLORS[] = {
+	rgb24_xrgbc(0x0000CC), // full blue
+	rgb24_xrgbc(0x0BEE00), // green
+	rgb24_xrgbc(0xFFFF00), // yellow
+	rgb24_xrgbc(0xFF0000), // red
+	rgb24_xrgbc(0x00CCFF), // cyan
+	rgb24_xrgbc(0xFF3300), // orange
+	rgb24_xrgbc(0xFF00FF), // magenta
+	rgb24_xrgbc(0x00FF88), // emerald
+	rgb24_xrgbc(0x5FBA00), // yellow-green
+	rgb24_xrgbc(0xFF7700), // tangerine yellow/orange
+	rgb24_xrgbc(0x4400FF), // blue-purple
+	rgb24_xrgbc(0xD70053), // wine
+	rgb24_xrgbc(0xED1B24), // firetruck red
+	rgb24_xrgbc(0xFF6D55), // salmon?
+	rgb24_xrgbc(0xFF4C4C), // skin pink
+};
+
+
 // Prototypes
 void render();
 void update();
 void deal_cards();
+void safe_press_arrow_key(uint8_t n);
 
 
 /** Program initialization */
@@ -194,7 +197,10 @@ ISR(TIMER0_COMPA_vect)
 
 
 // player cursor position
-uint8_t cursor = 0;
+uint8_t pos_x = 0;
+uint8_t pos_y = 0;
+#define Cursor (pos_y * WIDTH + pos_x)
+
 uint8_t animframe = 0;
 
 bool hide_timeout_match;
@@ -220,46 +226,36 @@ void button_click(uint8_t n)
 {
 	switch (n) {
 		case D_UP:
-			if (cursor < BOARD_WIDTH)  // first row
-				cursor += (CARD_COUNT - BOARD_WIDTH);
-			else
-				cursor -= BOARD_WIDTH;
+			dec_wrap(pos_y, 0, HEIGHT);
 			break;
 
 		case D_DOWN:
-			if (cursor >= (CARD_COUNT - BOARD_WIDTH))  // last row
-				cursor -= (CARD_COUNT - BOARD_WIDTH);
-			else
-				cursor += BOARD_WIDTH;
+			inc_wrap(pos_y, 0, HEIGHT);
 			break;
 
 		case D_LEFT:
-			if (cursor > 0)  // last row
-				cursor--;
-			else
-				cursor = (CARD_COUNT - 1);
+			if (pos_x == 0) dec_wrap(pos_y, 0, HEIGHT);  // go to previous row
+			dec_wrap(pos_x, 0, WIDTH);
 			break;
 
 		case D_RIGHT:
-			if (cursor < (CARD_COUNT - 1))  // last row
-				cursor++;
-			else
-				cursor = 0;
+			if (pos_x == WIDTH - 1) inc_wrap(pos_y, 0, HEIGHT);  // go to next row
+			inc_wrap(pos_x, 0, WIDTH);
 			break;
 
 		case D_SELECT:
 			if (tiles_revealed == 2) break;  // two already shown
-			if (board[cursor].state != SECRET) break;  // selected tile not secret
+			if (board[Cursor].state != SECRET) break;  // selected tile not secret
 
 			// reveal a tile
 			if (tiles_revealed < 2) {
-				board[cursor].state = REVEALED;
+				board[Cursor].state = REVEALED;
 				tiles_revealed++;
 
 				if(tiles_revealed == 1) {
-					tile1 = cursor;
+					tile1 = Cursor;
 				} else {
-					tile2 = cursor;
+					tile2 = Cursor;
 				}
 			}
 
@@ -273,6 +269,9 @@ void button_click(uint8_t n)
 
 		case D_RESTART:
 			deal_cards();
+			if (board[Cursor].state == GONE)
+				safe_press_arrow_key(D_RIGHT);
+
 			break;
 	}
 }
@@ -281,20 +280,49 @@ void button_click(uint8_t n)
 /** Press arrow key, skip empty tiles */
 void safe_press_arrow_key(uint8_t n)
 {
-	// attempt to arrive at some secret tile
-	for (uint8_t j = 0; j < BOARD_HEIGHT; j++) {
+	// preserve old position
+	const uint8_t x1 = pos_x;
+	const uint8_t y1 = pos_y;
 
-		for (uint8_t k = 0; k < BOARD_WIDTH; k++) {
+	if (n == D_LEFT || n == D_RIGHT) {
+
+		// traverse all buttons
+		for (uint8_t i = 0; i < CARD_COUNT; i++) {
 			button_click(n);
-			if (board[cursor].state != GONE) break;
+
+			if (board[Cursor].state != GONE) return;
 		}
 
-		if (board[cursor].state != GONE) break;
+	} else {
 
-		// traverse right since current column is empty
-		//
-		button_click(D_RIGHT);
+		for (uint8_t i = 0; i < HEIGHT; i++) {
+
+			// Go up/down
+			button_click(n);
+			if (board[Cursor].state != GONE) return;
+
+			for (int8_t x = 0; x < WIDTH; x++) {
+
+				if ((int8_t) pos_x - x >= 0) {
+					if (board[Cursor - x].state != GONE) {
+						pos_x -= x;
+						return;
+					}
+				}
+
+				if ((int8_t) pos_x + x < WIDTH) {
+					if (board[Cursor + x].state != GONE) {
+						pos_x += x;
+						return;
+					}
+				}
+			}
+		}
 	}
+
+	// restore original position
+	pos_x = x1;
+	pos_y = y1;
 }
 
 
@@ -331,10 +359,10 @@ void update()
 				board[tile1].state = GONE;
 				board[tile2].state = GONE;
 
-				if (board[cursor].state == GONE) {
+				if (board[Cursor].state == GONE) {
 					// move to some other tile
 					// try not to change row if possible
-					if ((cursor % BOARD_WIDTH) == (BOARD_WIDTH - 1))
+					if ((Cursor % WIDTH) == (WIDTH - 1))
 						safe_press_arrow_key(D_LEFT);
 					else
 						safe_press_arrow_key(D_RIGHT);
@@ -350,7 +378,7 @@ void update()
 	}
 
 	// Animation for pulsing the active color
-	inc_wrap(animframe, 0, F_ANIM_LEN * 2);
+	inc_wrapi(animframe, 0, F_ANIM_LEN * 2);
 }
 
 // LED off
@@ -384,7 +412,7 @@ void render()
 		}
 
 		// pulse active tile
-		if (i == cursor) {
+		if (i == Cursor) {
 			uint16_t mult;
 
 			if (animframe < F_ANIM_LEN) {
