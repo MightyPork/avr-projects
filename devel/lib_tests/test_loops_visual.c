@@ -12,14 +12,14 @@ void main()
 	printf("\n");
 	int i = 0;
 	until (i == 100) i++;
-	
-	whilst (i > 0) {
+
+	until (i == 0) {
 	  i--;
 	  printf("i = %d\n", i);
 	}
-	
+
 	printf("\n");
-	
+
 	loop(moo, 7) {
 	  printf("moo = %d\n", moo);
 	}

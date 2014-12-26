@@ -20,6 +20,3 @@
 // Do until condition is met
 #define until(what) while(!(what))
 
-// Because why the hell not
-#define whilst(what) while((what))
-
