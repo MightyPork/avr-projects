@@ -28,7 +28,7 @@
 #define BTN_RIGHT    D3
 #define BTN_UP       D4
 #define BTN_DOWN     D5
-#define BTN_SELECT   D6
+#define BTN_PAUSE    D6
 #define BTN_RESTART  D7
 
 // Debouncer channels for buttons
@@ -37,7 +37,7 @@
 #define D_RIGHT     1
 #define D_UP        2
 #define D_DOWN      3
-#define D_SELECT    4
+#define D_PAUSE     4
 #define D_RESTART   5
 
 #define DEBO_CHANNELS 6
@@ -75,7 +75,7 @@ void SECTION(".init8") init()
 	as_input_pu(BTN_RIGHT);
 	as_input_pu(BTN_UP);
 	as_input_pu(BTN_DOWN);
-	as_input_pu(BTN_SELECT);
+	as_input_pu(BTN_PAUSE);
 	as_input_pu(BTN_RESTART);
 
 	// add buttons to debouncer
@@ -83,7 +83,7 @@ void SECTION(".init8") init()
 	debo_add_rev(BTN_RIGHT);
 	debo_add_rev(BTN_UP);
 	debo_add_rev(BTN_DOWN);
-	debo_add_rev(BTN_SELECT);
+	debo_add_rev(BTN_PAUSE);
 	debo_add_rev(BTN_RESTART);
 
 	// setup timer
@@ -256,6 +256,8 @@ void init_gameboard()
 uint8_t presc = 0;
 
 bool restart_held;
+bool pause_held;
+bool paused;
 void update()
 {
 	if (debo_get_pin(D_RESTART)) {
@@ -271,7 +273,18 @@ void update()
 		restart_held = false;
 	}
 
-	if(!crashed) {
+	if (debo_get_pin(D_PAUSE)) {
+
+		if (!pause_held) {
+			paused ^= true;
+			pause_held = true;
+		}
+
+	} else {
+		pause_held = false;
+	}
+
+	if(!crashed && !paused) {
 
 		// resolve movement direction
 		if (debo_get_pin(D_LEFT))

@@ -289,7 +289,9 @@ void _lcd_write_byte(uint8_t bb)
 /** Wait until the device is ready */
 void _lcd_wait_bf()
 {
-	while(lcd_read_bf_addr() & _BV(7));
+	uint8_t d = 0;
+	while(d++ < 120 && lcd_read_bf_addr() & _BV(7))
+		_delay_us(1);
 }
 
 
