@@ -6,7 +6,6 @@
 #include <avr/pgmspace.h>
 #include <util/delay.h>
 
-#include "arduino_pins.h"
 #include "calc.h"
 #include "pins.h"
 #include "nsdelay.h"
@@ -103,6 +102,10 @@ void lcd_xy(const uint8_t x, const uint8_t y);
 void lcd_set_addr_cgram(const uint8_t acg);
 /** Set address in DDRAM */
 void lcd_set_addr(const uint8_t add);
+/** Go home */
+void lcd_home();
+/** Clear the screen */
+void lcd_clear();
 
 /** Set cursor */
 #define CURSOR_NONE  0b00
@@ -337,6 +340,20 @@ void lcd_enable()
 {
 	_lcd_enabled = true;
 	lcd_cursor(_lcd_old_cursor);
+}
+
+
+/** Go home */
+void lcd_home()
+{
+	lcd_write_command(LCD_HOME);
+}
+
+
+/** Clear the screen */
+void lcd_clear()
+{
+	lcd_write_command(LCD_CLEAR);
 }
 
 

@@ -1,7 +1,7 @@
 #pragma once
 
 /**
-  Utils for driving a WS2812 (WS2812B) RGB LED strips.
+  Utils for driving a WS28xx (tested on WS2812B) RGB LED strips.
 
   It's implemented as macros to avoid overhead when passing values, and to
   enable driving multiple strips at once.
