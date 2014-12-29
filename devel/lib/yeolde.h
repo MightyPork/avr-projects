@@ -27,3 +27,5 @@
 #define raise(what) (what)++
 
 #define number int
+
+#warning "This is a joke. Do not use YeOlde.h in serious code!"

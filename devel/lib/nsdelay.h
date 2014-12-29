@@ -16,3 +16,6 @@
 
 /** Wait n nanoseconds, plus c cycles  */
 #define delay_ns_c(ns, c)  delay_c(ns2cycles(ns) + (c))
+
+/** Wait n nanoseconds  */
+#define delay_ns(ns)  delay_c(ns2cycles(ns))
