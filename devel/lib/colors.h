@@ -11,6 +11,7 @@
   XX_r (_g, _b) ... extract component from the color, and convert it to 0..255
 */
 
+
 typedef struct {
 	uint8_t r;
 	uint8_t g;
@@ -79,5 +80,5 @@ typedef uint8_t rgb6_t;
 #define rgb6_rgb24(c) rgb24(rgb6_r(c), rgb6_g(c), rgb6_b(c))
 #define rgb6_rgb24c(c) rgb24c(rgb6_r(c), rgb6_g(c), rgb6_b(c))
 
-
 #define add_xrgb(x, y) ((xrgb_t) { (((y).r > (255 - (x).r)) ? 255 : ((x).r + (y).r)), (((y).g > (255 - (x).g)) ? 255 : ((x).g + (y).g)), (((y).b > 255 - (x).b) ? 255 : ((x).b + (y).b)) })
+
