@@ -74,7 +74,7 @@ void update_cell(cell_t* cell)
 
 void main()
 {
-	#define LEN 8
+	#define LEN 16
 	cell_t rainbow[LEN];
 
 	for(uint8_t i=0; i<LEN; i++) {
