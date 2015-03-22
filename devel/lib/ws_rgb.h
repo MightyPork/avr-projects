@@ -90,9 +90,38 @@
 #define ws_send_rgb6_array(io, rgbs, length) __ws_send_array_proto(io_pack(io), (rgbs), (length), rgb6)
 
 // prototype for sending array. it's ugly, sorry.
-#define __ws_send_array_proto(io, rgbs, length, style) do {								\
-	for (uint8_t __ws_tmp_sap_i = 0; __ws_tmp_sap_i < length; __ws_tmp_sap_i++) {		\
-		style ## _t __ws_tmp_sap2 = (rgbs)[__ws_tmp_sap_i];								\
-		ws_send_ ## style(io_pack(io), __ws_tmp_sap2);									\
+#define __ws_send_array_proto(io, rgbs, length, style) do {						\
+	for (uint8_t __ws_sap_i = 0; __ws_sap_i < length; __ws_sap_i++) {			\
+		style ## _t __ws_sap2 = (rgbs)[__ws_sap_i];								\
+		ws_send_ ## style(io_pack(io), __ws_sap2);								\
+	}																			\
+} while(0)
+
+/** Send a 2D array to a zig-zag display */
+#define ws_send_xrgb_array_zigzag(io, rgbs, width, height) do {				\
+	int8_t __ws_sxaz_y, __ws_sxaz_x;										\
+	for(__ws_sxaz_y = 0; __ws_sxaz_y < (height); __ws_sxaz_y ++) {			\
+		for(__ws_sxaz_x = 0; __ws_sxaz_x < (width); __ws_sxaz_x++) {		\
+			ws_send_xrgb(io_pack(io), (rgbs)[__ws_sxaz_y][__ws_sxaz_x]);	\
+		}																	\
+		__ws_sxaz_y++;														\
+		for(__ws_sxaz_x = (width) - 1; __ws_sxaz_x >= 0; __ws_sxaz_x--) {	\
+			ws_send_xrgb(io_pack(io), (rgbs)[__ws_sxaz_y][__ws_sxaz_x]);	\
+		}																	\
+	}																		\
+} while(0)
+
+
+/** Send a linear array to a zig-zag display as a n*m board (row-by-row) */
+#define ws_send_xrgb_array_zigzag_linear(io, rgbs, width, height) do {					\
+	int8_t __ws_sxazl_x, __ws_sxazl_y;													\
+	for(__ws_sxazl_y = 0; __ws_sxazl_y < (height); __ws_sxazl_y++) {					\
+		for(__ws_sxazl_x = 0; __ws_sxazl_x < (width); __ws_sxazl_x++) {					\
+			ws_send_xrgb(io_pack(io), (rgbs)[__ws_sxazl_y * (width) + __ws_sxazl_x]);	\
+		}																				\
+		__ws_sxazl_y++;																	\
+		for(__ws_sxazl_x = width-1; __ws_sxazl_x >=0; __ws_sxazl_x--) {					\
+			ws_send_xrgb(io_pack(io), (rgbs)[__ws_sxazl_y * (width) + __ws_sxazl_x]);	\
+		}																				\
 	}																					\
 } while(0)

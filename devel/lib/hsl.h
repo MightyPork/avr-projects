@@ -7,9 +7,6 @@
 #include "colors.h"
 
 // Define HSL_LINEAR to get more linear brightness in hsl->rgb conversion
-#ifdef HSL_LINEAR
-# include "linear_fade.h"
-#endif
 
 // HSL data structure
 typedef struct {
