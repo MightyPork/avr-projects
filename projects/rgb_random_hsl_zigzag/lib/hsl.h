@@ -6,6 +6,8 @@
 
 #include "colors.h"
 
+// Define HSL_LINEAR to get more linear brightness in hsl->rgb conversion
+
 // HSL data structure
 typedef struct {
 	uint8_t h;
