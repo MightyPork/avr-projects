@@ -14,8 +14,8 @@ a nice breakout board, crystal and everything. They can be purchased on eBay for
 
 ## Repo contents
 
-- Current W.I.P. projects are in **devel/**.
 - Old, not too useful projects are in **archive/**
 - Good and finished projects are in **projects/**
+- Library has been **moved to [it's own repo](https://github.com/MightyPork/avr-lib)**.
 
 Feel free to use any of my code :o)
