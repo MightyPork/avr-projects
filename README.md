@@ -14,7 +14,7 @@ a nice breakout board, crystal and everything. They can be purchased on eBay for
 
 ## Repo contents
 
-- Current W.I.P. projects & *latest library code* is in **devel/**.
+- Current W.I.P. projects are in **devel/**.
 - Old, not too useful projects are in **archive/**
 - Good and finished projects are in **projects/**
 

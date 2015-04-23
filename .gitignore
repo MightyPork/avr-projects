@@ -13,3 +13,5 @@
 *.so
 *.out
 *.hex
+
+devel/
