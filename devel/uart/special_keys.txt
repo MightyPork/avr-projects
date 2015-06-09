@@ -1,0 +1,25 @@
+
+		Es [  ?
+left	27 91 68
+right	27 91 67
+up		27 91 65
+down	27 91 66
+
+		Es [  ?  ~
+insert	27 91 50 126
+delete	27 91 51 126
+pgup	27 91 53 126
+pgdn	27 91 54 126
+
+		Es O  ?
+f1		27 79 80
+f2		27 79 81
+f3		27 79 82
+f4		27 79 83
+home	27 79 72
+end		27 79 70
+
+back	8
+tab		9
+enter	13
+esc		27
