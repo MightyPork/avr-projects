@@ -22,7 +22,9 @@ SOURCES += main.c \
     sd/spi.c \
     lib/fat16.c \
     lib/sd.c \
-    lib/spi.c
+    lib/spi.c \
+    lib/sd_blockdev.c \
+    lib/sd_fat.c
 
 include(deployment.pri)
 qtcAddDeployment()
@@ -48,7 +50,10 @@ HEADERS += \
     lib/fat16.h \
     lib/fat16_internal.h \
     lib/spi.h \
-    lib/sd.h
+    lib/sd.h \
+    lib/blockdev.h \
+    lib/sd_blockdev.h \
+    lib/sd_fat.h
 
 DISTFILES += \
     Makefile \
