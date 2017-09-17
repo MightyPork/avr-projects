@@ -1,6 +1,6 @@
 # AVR Projects
 
-*This repository contains all my AVR projects.*
+*This repository contains some of my old AVR projects.*
 
 Most are in C, to be compiled with `avr-gcc`. There's always a `Makefile` that should take care of it.
 
